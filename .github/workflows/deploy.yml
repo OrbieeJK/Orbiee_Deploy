@@ -9,36 +9,31 @@ jobs:
     runs-on: ubuntu-latest
     outputs:
       branch: ${{ steps.env.outputs.branch }}
-      env: ${{ steps.env.outputs.env }}
       region: ${{ steps.env.outputs.region }}
       artifact_registry_region: ${{ steps.env.outputs.artifact_registry_region }}
       artifact_registry_repo: ${{ steps.env.outputs.artifact_registry_repo }}
       cloud_run_service: ${{ steps.env.outputs.cloud_run_service }}
       image_name: ${{ steps.env.outputs.image_name }}
-      force_deploy: ${{ steps.env.outputs.force_deploy }}
 
     steps:
       - name: Checkout Code
         uses: actions/checkout@v4
         with:
           repository: ${{ github.event.client_payload.repository }}
-          ref: ${{ github.event.client_payload.ref || 'development' }}
+          ref: ${{ github.event.client_payload.ref }}
           token: ${{ secrets.PRIVATETOKENPULL }}
 
       - name: Determine Environment
         id: env
         run: |
-          BRANCH="${{ github.event.client_payload.ref || 'development' }}"
-          FORCE_DEPLOY="${{ github.event.client_payload.force_deploy || 'false' }}"
+          BRANCH="${{ github.event.client_payload.ref }}"
 
           case "$BRANCH" in
-            development)
-              ENV="development"
-              CLOUD_RUN_SERVICE="orbiee-development"
-              IMAGE_NAME="orbiee-development"
+            dev)
+              CLOUD_RUN_SERVICE="orbiee-dev"
+              IMAGE_NAME="orbiee-dev"
               ;;
             demo)
-              ENV="demo"
               CLOUD_RUN_SERVICE="orbiee-demo"
               IMAGE_NAME="orbiee-demo"
               ;;
@@ -53,13 +48,11 @@ jobs:
           ARTIFACT_REGISTRY_REPO="orbiee"
 
           echo "branch=$BRANCH"                                         >> $GITHUB_OUTPUT
-          echo "env=$ENV"                                               >> $GITHUB_OUTPUT
           echo "region=$REGION"                                         >> $GITHUB_OUTPUT
           echo "artifact_registry_region=$ARTIFACT_REGISTRY_REGION"    >> $GITHUB_OUTPUT
           echo "artifact_registry_repo=$ARTIFACT_REGISTRY_REPO"        >> $GITHUB_OUTPUT
           echo "cloud_run_service=$CLOUD_RUN_SERVICE"                   >> $GITHUB_OUTPUT
           echo "image_name=$IMAGE_NAME"                                 >> $GITHUB_OUTPUT
-          echo "force_deploy=$FORCE_DEPLOY"                             >> $GITHUB_OUTPUT
 
       - name: Authenticate to Google Cloud
         uses: google-github-actions/auth@v2
@@ -80,7 +73,7 @@ jobs:
         uses: actions/checkout@v4
         with:
           repository: ${{ github.event.client_payload.repository }}
-          ref: ${{ github.event.client_payload.ref || 'development' }}
+          ref: ${{ github.event.client_payload.ref }}
           token: ${{ secrets.PRIVATETOKENPULL }}
           fetch-depth: 0
 
@@ -99,13 +92,9 @@ jobs:
         run: |
           git fetch --tags 2>/dev/null || true
           BRANCH="${{ needs.setup.outputs.branch }}"
-          FORCE_DEPLOY="${{ needs.setup.outputs.force_deploy }}"
           CHANGED=""
 
-          if [[ "$FORCE_DEPLOY" == "true" ]]; then
-            echo "🚨 Force deploy enabled"
-            CHANGED="true"
-          elif git rev-parse --verify "origin/$BRANCH" >/dev/null 2>&1; then
+          if git rev-parse --verify "origin/$BRANCH" >/dev/null 2>&1; then
             ORIGIN_SHA=$(git rev-parse "origin/$BRANCH")
             HEAD_SHA=$(git rev-parse HEAD)
 
@@ -141,11 +130,9 @@ jobs:
           AR_REPO="${{ needs.setup.outputs.artifact_registry_repo }}"
           IMAGE_NAME="${{ needs.setup.outputs.image_name }}"
 
-          # Matches your Dockerfile ARG REACT_APP_ENV
           case "$BRANCH" in
-            development) REACT_APP_ENV="development" ;;
-            demo)        REACT_APP_ENV="demo"        ;;
-            *)           REACT_APP_ENV="development" ;;
+            dev)  REACT_APP_ENV="dev" ;;
+            demo) REACT_APP_ENV="demo"        ;;
           esac
 
           docker build \
