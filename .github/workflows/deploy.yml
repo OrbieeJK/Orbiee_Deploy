@@ -34,7 +34,7 @@ jobs:
           case "$BRANCH" in
             development)
               ENV="development"
-              CLOUD_RUN_SERVICE="orbiee-dev"
+              CLOUD_RUN_SERVICE="orbiee-development"
               IMAGE_NAME="orbiee-development"
               ;;
             demo)
