@@ -33,12 +33,12 @@ jobs:
               CLOUD_RUN_SERVICE="orbiee-dev"
               IMAGE_NAME="orbiee-dev"
               ;;
-            demo)
+            demov1)
               CLOUD_RUN_SERVICE="orbiee-demo"
               IMAGE_NAME="orbiee-demo"
               ;;
             *)
-              echo "❌ Unknown branch: $BRANCH — aborting"
+              echo "❌ CI-CD not configured for branch: $BRANCH — aborting"
               exit 1
               ;;
           esac
@@ -132,7 +132,7 @@ jobs:
 
           case "$BRANCH" in
             dev)  REACT_APP_ENV="dev" ;;
-            demo) REACT_APP_ENV="demo"        ;;
+            demov1) REACT_APP_ENV="demov1"        ;;
           esac
 
           docker build \
