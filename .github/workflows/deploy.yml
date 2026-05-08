@@ -178,8 +178,12 @@ jobs:
             --image=${AR_REGION}-docker.pkg.dev/retail-jkommerce-poc/${AR_REPO}/${IMAGE_NAME}:${TAG} \
             --platform=managed \
             --region=${REGION} \
-            --allow-unauthenticated \
             --quiet
+
+          gcloud run services add-iam-policy-binding backend-service \
+            --region=${REGION} \
+            --member="218142584790-compute@developer.gserviceaccount.com" \
+            --role="roles/run.invoker"
 
           echo ""
           echo "✅ Deployed: $CLOUD_RUN_SERVICE"
