@@ -34,7 +34,7 @@ jobs:
               IMAGE_NAME="orbiee-dev"
               ;;
             demov1)
-              CLOUD_RUN_SERVICE="orbiee-demo"
+              CLOUD_RUN_SERVICE="orbiee"
               IMAGE_NAME="orbiee-demo"
               ;;
             *)
