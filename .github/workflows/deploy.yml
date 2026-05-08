@@ -1,4 +1,4 @@
-name: Deploy Orbiee Frontend
+name: Deploy Orbiee
 
 on:
   repository_dispatch:
@@ -158,7 +158,7 @@ jobs:
           IMAGE_NAME="${{ needs.setup.outputs.image_name }}"
 
           docker build \
-            -f apps/orbiee_core/Dockerfile
+            -f apps/orbiee_core/Dockerfile \
             -t ${AR_REGION}-docker.pkg.dev/retail-jkommerce-poc/${AR_REPO}/${IMAGE_NAME}:${TAG} \
             .
 
