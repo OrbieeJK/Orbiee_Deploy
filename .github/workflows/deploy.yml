@@ -173,16 +173,17 @@ jobs:
           AR_REGION="${{ needs.setup.outputs.artifact_registry_region }}"
           AR_REPO="${{ needs.setup.outputs.artifact_registry_repo }}"
           IMAGE_NAME="${{ needs.setup.outputs.image_name }}"
-          SECRETS="ORBIEE_DB_CONFIG_SECRET_ID=orbiee-db-config-demo:latest,ORBIEE_API_KEY_SECRET_ID=orbiee-api-keys:latest"
+          SECRETS="ORBIEE_DB_CONFIG_SECRET_ID=orbiee-db-config-demo:latest,ORBIEE_API_KEY_SECRET_ID=orbiee-api-keys:latest,,REDIS_URL=orbiee-redis-url:latest"
 
           gcloud run deploy ${CLOUD_RUN_SERVICE} \
             --image=${AR_REGION}-docker.pkg.dev/retail-jkommerce-poc/${AR_REPO}/${IMAGE_NAME}:${TAG} \
             --platform=managed \
             --region=${REGION} \
             --set-secrets=${SECRETS} \
+            --set-env-vars="ORBIEE_GCP_PROJECT=retail-jkommerce-poc,ORBIEE_DEBUG=false" \
             --quiet
 
-          gcloud run services add-iam-policy-binding backend-service \
+          gcloud run services add-iam-policy-binding ${CLOUD_RUN_SERVICE} \
             --region=${REGION} \
             --member="218142584790-compute@developer.gserviceaccount.com" \
             --role="roles/run.invoker"
