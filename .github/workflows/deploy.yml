@@ -32,7 +32,7 @@ jobs:
           if [[ "$REPO" == "OrbieeJK/Orbiee_Backend" ]]; then
 
             case "$BRANCH" in
-              test)
+              feature/ReAct_cache)
                 CLOUD_RUN_SERVICE="orbiee-backend-dev"
                 IMAGE_NAME="orbiee-backend-dev"
                 ;;
@@ -51,7 +51,7 @@ jobs:
           else
 
             case "$BRANCH" in
-              dev)
+              dev|rearchitecture)
                 CLOUD_RUN_SERVICE="orbiee-dev"
                 IMAGE_NAME="orbiee-dev"
                 ;;
@@ -180,7 +180,7 @@ jobs:
             --platform=managed \
             --region=${REGION} \
             --set-secrets=${SECRETS} \
-            --set-env-vars="ORBIEE_GCP_PROJECT=retail-jkommerce-poc,ORBIEE_DEBUG=false" \
+            --set-env-vars="ORBIEE_GCP_PROJECT=retail-jkommerce-poc,ORBIEE_DEBUG=false,VERTEX_PROJECT=218142584790,RETAIL_PLACEMENT=projects/218142584790/locations/global/catalogs/default_catalog/servingConfigs/recommenedfy,RETAIL_BRANCH=projects/218142584790/locations/global/catalogs/default_catalog/branches/1,RETAIL_SEARCH_PLACEMENT=projects/218142584790/locations/global/catalogs/default_catalog/placements/default_search" \
             --quiet
 
           gcloud run services add-iam-policy-binding ${CLOUD_RUN_SERVICE} \
@@ -261,7 +261,7 @@ jobs:
           IMAGE_NAME="${{ needs.setup.outputs.image_name }}"
 
           case "$BRANCH" in
-            dev)  REACT_APP_ENV="dev" ;;
+            dev|rearchitecture)  REACT_APP_ENV="dev" ;;
             demov1) REACT_APP_ENV="demov1"        ;;
           esac
 
