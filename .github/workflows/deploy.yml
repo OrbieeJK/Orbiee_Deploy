@@ -188,27 +188,26 @@ jobs:
             --set-env-vars="ORBIEE_GCP_PROJECT=retail-jkommerce-poc,ORBIEE_DEBUG=false,VERTEX_PROJECT=218142584790,RETAIL_PLACEMENT=projects/218142584790/locations/global/catalogs/default_catalog/servingConfigs/recommenedfy,RETAIL_BRANCH=projects/218142584790/locations/global/catalogs/default_catalog/branches/2,RETAIL_SEARCH_PLACEMENT=projects/218142584790/locations/global/catalogs/default_catalog/placements/default_search" \
             --quiet
 
-          gcloud run deploy ${CLOUD_WORKER_SERVICE} \
-            --image=${AR_REGION}-docker.pkg.dev/retail-jkommerce-poc/${AR_REPO}/${IMAGE_NAME}:${TAG} \
-            --platform=managed \
-            --region=${REGION} \
-            --set-secrets=${SECRETS} \
-            --set-env-vars="ORBIEE_GCP_PROJECT=retail-jkommerce-poc,ORBIEE_DEBUG=false,VERTEX_PROJECT=218142584790,RETAIL_PLACEMENT=projects/218142584790/locations/global/catalogs/default_catalog/servingConfigs/recommenedfy,RETAIL_BRANCH=projects/218142584790/locations/global/catalogs/default_catalog/branches/2,RETAIL_SEARCH_PLACEMENT=projects/218142584790/locations/global/catalogs/default_catalog/placements/default_search" \
-            --command=python \
-            --args=-m,orbiee.workers.session_worker \
-            --min-instances=1 \
-            --max-instances=1 \
-            --quiet
-
           gcloud run services add-iam-policy-binding ${CLOUD_RUN_SERVICE} \
             --region=${REGION} \
             --member="serviceAccount:218142584790-compute@developer.gserviceaccount.com" \
             --role="roles/run.invoker"
 
-          gcloud run services add-iam-policy-binding ${CLOUD_WORKER_SERVICE} \
-            --region=${REGION} \
-            --member="serviceAccount:218142584790-compute@developer.gserviceaccount.com" \
-            --role="roles/run.invoker"
+          gcloud run jobs create ${CLOUD_WORKER_SERVICE} \
+          --image=${AR_REGION}-docker.pkg.dev/retail-jkommerce-poc/${AR_REPO}/${IMAGE_NAME}:${TAG} \
+          --region=${REGION} \
+          --command python \
+          --args "-m,orbiee.workers.session_worker" \
+          --set-secrets=${SECRETS} \
+          --set-env-vars="ORBIEE_GCP_PROJECT=retail-jkommerce-poc,ORBIEE_DEBUG=false,VERTEX_PROJECT=218142584790,RETAIL_PLACEMENT=projects/218142584790/locations/global/catalogs/default_catalog/servingConfigs/recommenedfy,RETAIL_BRANCH=projects/218142584790/locations/global/catalogs/default_catalog/branches/2,RETAIL_SEARCH_PLACEMENT=projects/218142584790/locations/global/catalogs/default_catalog/placements/default_search" \
+          --max-retries=0 \
+          --task-timeout=24h
+
+          # gcloud run jobs update ${CLOUD_WORKER_SERVICE} \
+          # --region=us-central1 \
+          # --image=${AR_REGION}-docker.pkg.dev/retail-jkommerce-poc/${AR_REPO}/${IMAGE_NAME}:${TAG}
+
+          gcloud run jobs execute ${CLOUD_WORKER_SERVICE} --region=${REGION}
 
           echo ""
           echo "✅ Deployed: $CLOUD_RUN_SERVICE"
