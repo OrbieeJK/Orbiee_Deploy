@@ -40,7 +40,7 @@ jobs:
                 ENV="dev"
                 ;;
                 
-              rearchitecture-demo)
+              rearchitecture_demo)
                 CLOUD_RUN_SERVICE="orbiee-backend"
                 IMAGE_NAME="orbiee-backend"
                 CLOUD_WORKER_SERVICE="orbiee-worker"
@@ -61,7 +61,7 @@ jobs:
                 IMAGE_NAME="orbiee-dev"
                 ;;
                 
-              demov1|rearchitecture-demo)
+              demov1|rearchitecture_demo)
                 CLOUD_RUN_SERVICE="orbiee"
                 IMAGE_NAME="orbiee-demo"
                 ;;
