@@ -181,11 +181,17 @@ jobs:
           AR_REGION="${{ needs.setup.outputs.artifact_registry_region }}"
           AR_REPO="${{ needs.setup.outputs.artifact_registry_repo }}"
           IMAGE_NAME="${{ needs.setup.outputs.image_name }}"
+          ENV="${{ needs.setup.outputs.env }}"
+
+          echo "Deploying for env: $ENV"
+
           if [ "$ENV" = "dev" ]; then
             SECRETS="DB_CONFIG=orbiee-db-config:latest,API_KEYS_JSON=orbiee-api-keys:latest,REDIS_URL=orbiee-redis-url:latest"
           else
             SECRETS="DB_CONFIG=orbiee-db-config-demo:latest,API_KEYS_JSON=orbiee-api-keys:latest,REDIS_URL=orbiee-demo-redis-url:latest"
           fi
+
+          echo "Secrets: $SECRETS"
 
           gcloud run deploy ${CLOUD_RUN_SERVICE} \
             --image=${AR_REGION}-docker.pkg.dev/retail-jkommerce-poc/${AR_REPO}/${IMAGE_NAME}:${TAG} \
