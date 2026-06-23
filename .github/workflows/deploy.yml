@@ -288,11 +288,12 @@ jobs:
           AR_REGION="${{ needs.setup.outputs.artifact_registry_region }}"
           AR_REPO="${{ needs.setup.outputs.artifact_registry_repo }}"
           IMAGE_NAME="${{ needs.setup.outputs.image_name }}"
+          REACT_APP_ENV="dev"
 
-          case "$BRANCH" in
-            dev|rearchitecture)  REACT_APP_ENV="dev" ;;
-            demov1|rearchitecture_demo) REACT_APP_ENV="demov1"        ;;
-          esac
+          # case "$BRANCH" in
+          #   dev|rearchitecture)  REACT_APP_ENV="dev" ;;
+          #   demov1|rearchitecture_demo) REACT_APP_ENV="demov1"        ;;
+          # esac
 
           docker build \
             --build-arg REACT_APP_ENV=${REACT_APP_ENV} \
