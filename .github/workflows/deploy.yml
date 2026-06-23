@@ -86,7 +86,7 @@ jobs:
           echo "cloud_run_service=$CLOUD_RUN_SERVICE"                   >> $GITHUB_OUTPUT
           echo "cloud_worker_service=$CLOUD_WORKER_SERVICE"             >> $GITHUB_OUTPUT
           echo "image_name=$IMAGE_NAME"                                 >> $GITHUB_OUTPUT
-          echo "env=$ENV"                                               >> $GITHUB_OUTPUT
+          echo "environment=$ENVIRONMENT"                               >> $GITHUB_OUTPUT
 
       - name: Authenticate to Google Cloud
         uses: google-github-actions/auth@v2
