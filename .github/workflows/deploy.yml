@@ -15,6 +15,7 @@ jobs:
       cloud_run_service: ${{ steps.env.outputs.cloud_run_service }}
       cloud_worker_service: ${{ steps.env.outputs.cloud_worker_service }}
       image_name: ${{ steps.env.outputs.image_name }}
+      environment: ${{ steps.env.outputs.environment }}
 
     steps:
       - name: Checkout Code
@@ -37,14 +38,14 @@ jobs:
                 CLOUD_RUN_SERVICE="orbiee-backend-dev"
                 IMAGE_NAME="orbiee-backend-dev"
                 CLOUD_WORKER_SERVICE="orbiee-worker-dev"
-                ENV="dev"
+                ENVIRONMENT="dev"
                 ;;
                 
               rearchitecture_demo)
                 CLOUD_RUN_SERVICE="orbiee-backend"
                 IMAGE_NAME="orbiee-backend"
                 CLOUD_WORKER_SERVICE="orbiee-worker"
-                ENV="demo"
+                ENVIRONMENT="demo"
                 ;;
                 
               *)
@@ -181,11 +182,11 @@ jobs:
           AR_REGION="${{ needs.setup.outputs.artifact_registry_region }}"
           AR_REPO="${{ needs.setup.outputs.artifact_registry_repo }}"
           IMAGE_NAME="${{ needs.setup.outputs.image_name }}"
-          ENV="${{ needs.setup.outputs.env }}"
+          ENVIRONMENT="${{ needs.setup.outputs.environment }}"
 
-          echo "Deploying for env: $ENV"
+          echo "Deploying for env: $ENVIRONMENT"
 
-          if [ "$ENV" = "dev" ]; then
+          if [ "$ENVIRONMENT" = "dev" ]; then
             SECRETS="DB_CONFIG=orbiee-db-config:latest,API_KEYS_JSON=orbiee-api-keys:latest,REDIS_URL=orbiee-redis-url:latest"
           else
             SECRETS="DB_CONFIG=orbiee-db-config-demo:latest,API_KEYS_JSON=orbiee-api-keys:latest,REDIS_URL=orbiee-demo-redis-url:latest"
