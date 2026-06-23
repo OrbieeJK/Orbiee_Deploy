@@ -33,16 +33,18 @@ jobs:
           if [[ "$REPO" == "OrbieeJK/Orbiee_Backend" ]]; then
 
             case "$BRANCH" in
-              rearchitecture|feature/conversation_summary)
+              rearchitecture)
                 CLOUD_RUN_SERVICE="orbiee-backend-dev"
                 IMAGE_NAME="orbiee-backend-dev"
                 CLOUD_WORKER_SERVICE="orbiee-worker-dev"
+                ENV="dev"
                 ;;
                 
-              demo-rearchitecture)
+              rearchitecture-demo)
                 CLOUD_RUN_SERVICE="orbiee-backend"
                 IMAGE_NAME="orbiee-backend"
                 CLOUD_WORKER_SERVICE="orbiee-worker"
+                ENV="demo"
                 ;;
                 
               *)
@@ -59,7 +61,7 @@ jobs:
                 IMAGE_NAME="orbiee-dev"
                 ;;
                 
-              demov1)
+              demov1|rearchitecture-demo)
                 CLOUD_RUN_SERVICE="orbiee"
                 IMAGE_NAME="orbiee-demo"
                 ;;
@@ -83,6 +85,7 @@ jobs:
           echo "cloud_run_service=$CLOUD_RUN_SERVICE"                   >> $GITHUB_OUTPUT
           echo "cloud_worker_service=$CLOUD_WORKER_SERVICE"             >> $GITHUB_OUTPUT
           echo "image_name=$IMAGE_NAME"                                 >> $GITHUB_OUTPUT
+          echo "env=$ENV"                                               >> $GITHUB_OUTPUT
 
       - name: Authenticate to Google Cloud
         uses: google-github-actions/auth@v2
@@ -178,7 +181,11 @@ jobs:
           AR_REGION="${{ needs.setup.outputs.artifact_registry_region }}"
           AR_REPO="${{ needs.setup.outputs.artifact_registry_repo }}"
           IMAGE_NAME="${{ needs.setup.outputs.image_name }}"
-          SECRETS="DB_CONFIG=orbiee-db-config:latest,API_KEYS_JSON=orbiee-api-keys:latest,REDIS_URL=orbiee-redis-url:latest"
+          if [ "$ENV" = "dev" ]; then
+            SECRETS="DB_CONFIG=orbiee-db-config:latest,API_KEYS_JSON=orbiee-api-keys:latest,REDIS_URL=orbiee-redis-url:latest"
+          else
+            SECRETS="DB_CONFIG=orbiee-db-config-demo:latest,API_KEYS_JSON=orbiee-api-keys:latest,REDIS_URL=orbiee-demo-redis-url:latest"
+          fi
 
           gcloud run deploy ${CLOUD_RUN_SERVICE} \
             --image=${AR_REGION}-docker.pkg.dev/retail-jkommerce-poc/${AR_REPO}/${IMAGE_NAME}:${TAG} \
