@@ -254,14 +254,15 @@ jobs:
               --max-retries=1 \
               --service-account="218142584790-compute@developer.gserviceaccount.com" \
               --task-timeout=15m
+          fi
 
-            gcloud run jobs add-iam-policy-binding ${IMPRESSIONS_IMAGE_NAME} \
+          gcloud run jobs add-iam-policy-binding ${IMPRESSIONS_IMAGE_NAME} \
               --region=${REGION} \
               --member="serviceAccount:218142584790-compute@developer.gserviceaccount.com" \
               --role="roles/run.invoker"
-          fi
 
           if gcloud scheduler jobs describe ${IMPRESSIONS_IMAGE_NAME}-weekly --location=${REGION} >/dev/null 2>&1; then
+            echo "Updating existing job scheduler..."
             gcloud scheduler jobs update http ${IMPRESSIONS_IMAGE_NAME}-weekly \  
               --location=${REGION} \  
               --schedule="0 6 * * 1" \  
@@ -269,7 +270,8 @@ jobs:
               --http-method=POST \  
               --oauth-service-account-email="218142584790-compute@developer.gserviceaccount.com" \
               --oauth-token-scope="https://www.googleapis.com/auth/cloud-platform"
-          else 
+          else
+            echo "Creating new job scheduler..."
             gcloud scheduler jobs create http ${IMPRESSIONS_IMAGE_NAME}-weekly \  
               --location=${REGION} \  
               --schedule="0 6 * * 1" \  
