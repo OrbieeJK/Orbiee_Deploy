@@ -263,20 +263,20 @@ jobs:
 
           if gcloud scheduler jobs describe ${IMPRESSIONS_IMAGE_NAME}-weekly --location=${REGION} >/dev/null 2>&1; then
             echo "Updating existing job scheduler..."
-            gcloud scheduler jobs update http ${IMPRESSIONS_IMAGE_NAME}-weekly \  
-              --location=${REGION} \  
-              --schedule="0 6 * * 1" \  
-              --uri="https://run.googleapis.com/v2/projects/retail-jkommerce-poc/locations/${REGION}/jobs/${IMPRESSIONS_IMAGE_NAME}:run" \  
-              --http-method=POST \  
+            gcloud scheduler jobs update http ${IMPRESSIONS_IMAGE_NAME}-weekly \
+              --location=${REGION} \
+              --schedule="0 6 * * 1" \
+              --uri="https://run.googleapis.com/v2/projects/retail-jkommerce-poc/locations/${REGION}/jobs/${IMPRESSIONS_IMAGE_NAME}:run" \
+              --http-method=POST \
               --oauth-service-account-email="218142584790-compute@developer.gserviceaccount.com" \
               --oauth-token-scope="https://www.googleapis.com/auth/cloud-platform"
           else
             echo "Creating new job scheduler..."
-            gcloud scheduler jobs create http ${IMPRESSIONS_IMAGE_NAME}-weekly \  
-              --location=${REGION} \  
-              --schedule="0 6 * * 1" \  
-              --uri="https://run.googleapis.com/v2/projects/retail-jkommerce-poc/locations/${REGION}/jobs/${IMPRESSIONS_IMAGE_NAME}:run" \  
-              --http-method=POST \  
+            gcloud scheduler jobs create http ${IMPRESSIONS_IMAGE_NAME}-weekly \
+              --location=${REGION} \
+              --schedule="0 6 * * 1" \
+              --uri="https://run.googleapis.com/v2/projects/retail-jkommerce-poc/locations/${REGION}/jobs/${IMPRESSIONS_IMAGE_NAME}:run" \
+              --http-method=POST \
               --oauth-service-account-email="218142584790-compute@developer.gserviceaccount.com" \
               --oauth-token-scope="https://www.googleapis.com/auth/cloud-platform"
           fi
