@@ -15,6 +15,7 @@ jobs:
       cloud_run_service: ${{ steps.env.outputs.cloud_run_service }}
       cloud_worker_service: ${{ steps.env.outputs.cloud_worker_service }}
       image_name: ${{ steps.env.outputs.image_name }}
+      impressions_image_name: ${{ steps.env.outputs.impressions_image_name }}
       environment: ${{ steps.env.outputs.environment }}
 
     steps:
@@ -37,6 +38,7 @@ jobs:
               rearchitecture)
                 CLOUD_RUN_SERVICE="orbiee-backend-dev"
                 IMAGE_NAME="orbiee-backend-dev"
+                IMPRESSIONS_IMAGE_NAME="orbiee-impressions-analytics-dev"
                 CLOUD_WORKER_SERVICE="orbiee-worker-dev"
                 ENVIRONMENT="dev"
                 ;;
@@ -44,6 +46,7 @@ jobs:
               rearchitecture_demo)
                 CLOUD_RUN_SERVICE="orbiee-backend"
                 IMAGE_NAME="orbiee-backend"
+                IMPRESSIONS_IMAGE_NAME="orbiee-impressions-analytics"
                 CLOUD_WORKER_SERVICE="orbiee-worker"
                 ENVIRONMENT="demo"
                 ;;
@@ -86,6 +89,7 @@ jobs:
           echo "cloud_run_service=$CLOUD_RUN_SERVICE"                   >> $GITHUB_OUTPUT
           echo "cloud_worker_service=$CLOUD_WORKER_SERVICE"             >> $GITHUB_OUTPUT
           echo "image_name=$IMAGE_NAME"                                 >> $GITHUB_OUTPUT
+          echo "impressions_image_name=$IMPRESSIONS_IMAGE_NAME"         >> $GITHUB_OUTPUT
           echo "environment=$ENVIRONMENT"                               >> $GITHUB_OUTPUT
 
       - name: Authenticate to Google Cloud
@@ -164,14 +168,21 @@ jobs:
           AR_REGION="${{ needs.setup.outputs.artifact_registry_region }}"
           AR_REPO="${{ needs.setup.outputs.artifact_registry_repo }}"
           IMAGE_NAME="${{ needs.setup.outputs.image_name }}"
+          IMPRESSIONS_IMAGE_NAME="${{ needs.setup.outputs.impressions_image_name }}"
 
           docker build \
             -f apps/orbiee_core/Dockerfile \
             -t ${AR_REGION}-docker.pkg.dev/retail-jkommerce-poc/${AR_REPO}/${IMAGE_NAME}:${TAG} \
             .
 
+          docker build \
+            -f apps/impressions_analytics_job/Dockerfile \
+            -t ${AR_REGION}-docker.pkg.dev/retail-jkommerce-poc/${AR_REPO}/${IMPRESSIONS_IMAGE_NAME}:${TAG} \
+            .
+
           gcloud auth configure-docker ${AR_REGION}-docker.pkg.dev --quiet
           docker push ${AR_REGION}-docker.pkg.dev/retail-jkommerce-poc/${AR_REPO}/${IMAGE_NAME}:${TAG}
+          docker push ${AR_REGION}-docker.pkg.dev/retail-jkommerce-poc/${AR_REPO}/${IMPRESSIONS_IMAGE_NAME}:${TAG}
 
       - name: Deploy to Cloud Run
         if: steps.check.outputs.has_changes == 'true'
@@ -182,6 +193,7 @@ jobs:
           AR_REGION="${{ needs.setup.outputs.artifact_registry_region }}"
           AR_REPO="${{ needs.setup.outputs.artifact_registry_repo }}"
           IMAGE_NAME="${{ needs.setup.outputs.image_name }}"
+          IMPRESSIONS_IMAGE_NAME="${{ needs.setup.outputs.impressions_image_name }}"
           ENVIRONMENT="${{ needs.setup.outputs.environment }}"
 
           echo "Deploying for env: $ENVIRONMENT"
@@ -223,6 +235,49 @@ jobs:
             --region=${REGION} \
             --member="serviceAccount:218142584790-compute@developer.gserviceaccount.com" \
             --role="roles/run.invoker"
+
+          if gcloud run jobs describe ${IMPRESSIONS_IMAGE_NAME} --region=${REGION} >/dev/null 2>&1; then
+            echo "Updating existing job..."
+            gcloud run jobs update ${IMPRESSIONS_IMAGE_NAME} \
+              --image=${AR_REGION}-docker.pkg.dev/retail-jkommerce-poc/${AR_REPO}/${IMPRESSIONS_IMAGE_NAME}:${TAG} \
+              --region=${REGION} \
+              --set-secrets=${SECRETS} \
+              --max-retries=1 \
+              --service-account="218142584790-compute@developer.gserviceaccount.com" \
+              --task-timeout=15m
+          else
+            echo "Creating new job..."
+            gcloud run jobs create ${IMPRESSIONS_IMAGE_NAME} \
+              --image=${AR_REGION}-docker.pkg.dev/retail-jkommerce-poc/${AR_REPO}/${IMPRESSIONS_IMAGE_NAME}:${TAG} \
+              --region=${REGION} \
+              --set-secrets=${SECRETS} \
+              --max-retries=1 \
+              --service-account="218142584790-compute@developer.gserviceaccount.com" \
+              --task-timeout=15m
+
+            gcloud run jobs add-iam-policy-binding ${IMPRESSIONS_IMAGE_NAME} \
+              --region=${REGION} \
+              --member="serviceAccount:218142584790-compute@developer.gserviceaccount.com" \
+              --role="roles/run.invoker"
+          fi
+
+          if gcloud scheduler jobs describe ${IMPRESSIONS_IMAGE_NAME}-weekly --location=${REGION} >/dev/null 2>&1; then
+            gcloud scheduler jobs update http ${IMPRESSIONS_IMAGE_NAME}-weekly \  
+              --location=${REGION} \  
+              --schedule="0 6 * * 1" \  
+              --uri="https://run.googleapis.com/v2/projects/retail-jkommerce-poc/locations/${REGION}/jobs/${IMPRESSIONS_IMAGE_NAME}:run" \  
+              --http-method=POST \  
+              --oauth-service-account-email="218142584790-compute@developer.gserviceaccount.com" \
+              --oauth-token-scope="https://www.googleapis.com/auth/cloud-platform"
+          else 
+            gcloud scheduler jobs create http ${IMPRESSIONS_IMAGE_NAME}-weekly \  
+              --location=${REGION} \  
+              --schedule="0 6 * * 1" \  
+              --uri="https://run.googleapis.com/v2/projects/retail-jkommerce-poc/locations/${REGION}/jobs/${IMPRESSIONS_IMAGE_NAME}:run" \  
+              --http-method=POST \  
+              --oauth-service-account-email="218142584790-compute@developer.gserviceaccount.com" \
+              --oauth-token-scope="https://www.googleapis.com/auth/cloud-platform"
+          fi
 
           echo ""
           echo "✅ Deployed: $CLOUD_RUN_SERVICE"
