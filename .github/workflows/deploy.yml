@@ -36,7 +36,7 @@ jobs:
           if [[ "$REPO" == "OrbieeJK/Orbiee_Backend" ]]; then
 
             case "$BRANCH" in
-              rearchitecture)
+              rearchitecture|feature/emotion_detection)
                 CLOUD_RUN_SERVICE="orbiee-backend-dev"
                 IMAGE_NAME="orbiee-backend-dev"
                 IMPRESSIONS_IMAGE_NAME="orbiee-impressions-analytics-dev"
