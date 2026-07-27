@@ -44,6 +44,15 @@ jobs:
                 CLOUD_WORKER_SERVICE="orbiee-worker-dev"
                 ENVIRONMENT="dev"
                 ;;
+
+              feature/SearchRetrieval)
+                CLOUD_RUN_SERVICE="orbiee-backend-dev1"
+                IMAGE_NAME="orbiee-backend-dev1"
+                IMPRESSIONS_IMAGE_NAME="orbiee-impressions-analytics-dev1"
+                PREFERENCES_IMAGE_NAME="orbiee-preferences-dev1"
+                CLOUD_WORKER_SERVICE="orbiee-worker-dev1"
+                ENVIRONMENT="dev"
+                ;;
                 
               rearchitecture_demo)
                 CLOUD_RUN_SERVICE="orbiee-backend"
@@ -66,6 +75,11 @@ jobs:
               dev|rearchitecture)
                 CLOUD_RUN_SERVICE="orbiee-dev"
                 IMAGE_NAME="orbiee-dev"
+                ;;
+
+              search-testing)
+                CLOUD_RUN_SERVICE="orbiee-dev1"
+                IMAGE_NAME="orbiee-dev1"
                 ;;
                 
               demov1|rearchitecture_demo)
