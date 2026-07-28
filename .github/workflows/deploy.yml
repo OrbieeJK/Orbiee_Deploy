@@ -244,7 +244,7 @@ jobs:
           gcloud run deploy ${CLOUD_RUN_SERVICE} \
             --image=${AR_REGION}-docker.pkg.dev/retail-jkommerce-poc/${AR_REPO}/${IMAGE_NAME}:${TAG} \
             --platform=managed \
-            --memory=1Gi \
+            --memory=2Gi \
             --region=${REGION} \
             --set-secrets=${SECRETS} \
             --set-env-vars="ORBIEE_GCP_PROJECT=retail-jkommerce-poc,ORBIEE_DEBUG=false,VERTEX_PROJECT=218142584790,RETAIL_PLACEMENT=projects/218142584790/locations/global/catalogs/default_catalog/servingConfigs/recommenedfy,RETAIL_BRANCH=projects/218142584790/locations/global/catalogs/default_catalog/branches/2,RETAIL_SEARCH_PLACEMENT=projects/218142584790/locations/global/catalogs/default_catalog/placements/default_search" \
@@ -253,7 +253,7 @@ jobs:
           gcloud run deploy ${CLOUD_WORKER_SERVICE} \
             --image=${AR_REGION}-docker.pkg.dev/retail-jkommerce-poc/${AR_REPO}/${IMAGE_NAME}:${TAG} \
             --platform=managed \
-            --memory=1Gi \
+            --memory=2Gi \
             --region=${REGION} \
             --set-secrets=${SECRETS} \
             --set-env-vars="ORBIEE_GCP_PROJECT=retail-jkommerce-poc,ORBIEE_DEBUG=false,VERTEX_PROJECT=218142584790,RETAIL_PLACEMENT=projects/218142584790/locations/global/catalogs/default_catalog/servingConfigs/recommenedfy,RETAIL_BRANCH=projects/218142584790/locations/global/catalogs/default_catalog/branches/2,RETAIL_SEARCH_PLACEMENT=projects/218142584790/locations/global/catalogs/default_catalog/placements/default_search" \
