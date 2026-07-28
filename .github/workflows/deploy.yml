@@ -53,6 +53,15 @@ jobs:
                 CLOUD_WORKER_SERVICE="orbiee-worker-dev1"
                 ENVIRONMENT="dev"
                 ;;
+
+              feature/*)
+                CLOUD_RUN_SERVICE="orbiee-backend-dev"
+                IMAGE_NAME="orbiee-backend-dev"
+                IMPRESSIONS_IMAGE_NAME="orbiee-impressions-analytics-dev"
+                PREFERENCES_IMAGE_NAME="orbiee-preferences-dev"
+                CLOUD_WORKER_SERVICE="orbiee-worker-dev"
+                ENVIRONMENT="dev"
+                ;;
                 
               rearchitecture_demo)
                 CLOUD_RUN_SERVICE="orbiee-backend"
