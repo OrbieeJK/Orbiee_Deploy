@@ -225,9 +225,9 @@ jobs:
           echo "Deploying for env: $ENVIRONMENT"
 
           if [ "$ENVIRONMENT" = "dev" ]; then
-            SECRETS="DB_CONFIG=orbiee-db-config:latest,API_KEYS_JSON=orbiee-api-keys:latest,REDIS_URL=orbiee-redis-url:latest"
+            SECRETS="DB_CONFIG=orbiee-db-config:latest,API_KEYS_JSON=orbiee-api-keys:latest,REDIS_URL=orbiee-redis-url:latest,ORBIEE_SEARCH_BACKEND=orbiee-search-backend:latest"
           else
-            SECRETS="DB_CONFIG=orbiee-db-config-demo:latest,API_KEYS_JSON=orbiee-api-keys:latest,REDIS_URL=orbiee-demo-redis-url:latest"
+            SECRETS="DB_CONFIG=orbiee-db-config-demo:latest,API_KEYS_JSON=orbiee-api-keys:latest,REDIS_URL=orbiee-demo-redis-url:latest,ORBIEE_SEARCH_BACKEND=orbiee-search-backend-demo:latest"
           fi
 
           echo "Secrets: $SECRETS"
@@ -235,7 +235,7 @@ jobs:
           gcloud run deploy ${CLOUD_RUN_SERVICE} \
             --image=${AR_REGION}-docker.pkg.dev/retail-jkommerce-poc/${AR_REPO}/${IMAGE_NAME}:${TAG} \
             --platform=managed \
-            --memory=2Gi \
+            --memory=1Gi \
             --region=${REGION} \
             --set-secrets=${SECRETS} \
             --set-env-vars="ORBIEE_GCP_PROJECT=retail-jkommerce-poc,ORBIEE_DEBUG=false,VERTEX_PROJECT=218142584790,RETAIL_PLACEMENT=projects/218142584790/locations/global/catalogs/default_catalog/servingConfigs/recommenedfy,RETAIL_BRANCH=projects/218142584790/locations/global/catalogs/default_catalog/branches/2,RETAIL_SEARCH_PLACEMENT=projects/218142584790/locations/global/catalogs/default_catalog/placements/default_search" \
@@ -244,7 +244,7 @@ jobs:
           gcloud run deploy ${CLOUD_WORKER_SERVICE} \
             --image=${AR_REGION}-docker.pkg.dev/retail-jkommerce-poc/${AR_REPO}/${IMAGE_NAME}:${TAG} \
             --platform=managed \
-            --memory=2Gi \
+            --memory=1Gi \
             --region=${REGION} \
             --set-secrets=${SECRETS} \
             --set-env-vars="ORBIEE_GCP_PROJECT=retail-jkommerce-poc,ORBIEE_DEBUG=false,VERTEX_PROJECT=218142584790,RETAIL_PLACEMENT=projects/218142584790/locations/global/catalogs/default_catalog/servingConfigs/recommenedfy,RETAIL_BRANCH=projects/218142584790/locations/global/catalogs/default_catalog/branches/2,RETAIL_SEARCH_PLACEMENT=projects/218142584790/locations/global/catalogs/default_catalog/placements/default_search" \
