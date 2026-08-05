@@ -215,8 +215,8 @@ jobs:
           
           gcloud auth configure-docker ${AR_REGION}-docker.pkg.dev --quiet
           docker push ${AR_REGION}-docker.pkg.dev/retail-jkommerce-poc/${AR_REPO}/${IMAGE_NAME}:${TAG}
-          docker push ${AR_REGION}-docker.pkg.dev/retail-jkommerce-poc/${AR_REPO}/${IMPRESSIONS_IMAGE_NAME}:${TAG}
-          docker push ${AR_REGION}-docker.pkg.dev/retail-jkommerce-poc/${AR_REPO}/${PREFERENCES_IMAGE_NAME}:${TAG}
+          # docker push ${AR_REGION}-docker.pkg.dev/retail-jkommerce-poc/${AR_REPO}/${IMPRESSIONS_IMAGE_NAME}:${TAG}
+          # docker push ${AR_REGION}-docker.pkg.dev/retail-jkommerce-poc/${AR_REPO}/${PREFERENCES_IMAGE_NAME}:${TAG}
 
       - name: Deploy to Cloud Run
         if: steps.check.outputs.has_changes == 'true'
