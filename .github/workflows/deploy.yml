@@ -203,20 +203,20 @@ jobs:
             -t ${AR_REGION}-docker.pkg.dev/retail-jkommerce-poc/${AR_REPO}/${IMAGE_NAME}:${TAG} \
             .
 
-          # docker build \
-          #   -f apps/impressions_analytics_job/Dockerfile \
-          #   -t ${AR_REGION}-docker.pkg.dev/retail-jkommerce-poc/${AR_REPO}/${IMPRESSIONS_IMAGE_NAME}:${TAG} \
-          #   .
+          docker build \
+            -f apps/impressions_analytics_job/Dockerfile \
+            -t ${AR_REGION}-docker.pkg.dev/retail-jkommerce-poc/${AR_REPO}/${IMPRESSIONS_IMAGE_NAME}:${TAG} \
+            .
 
-          # docker build \
-          #   -f apps/affinity_learning_service/Dockerfile \
-          #   -t ${AR_REGION}-docker.pkg.dev/retail-jkommerce-poc/${AR_REPO}/${PREFERENCES_IMAGE_NAME}:${TAG} \
-          #   .
+          docker build \
+            -f apps/affinity_learning_service/Dockerfile \
+            -t ${AR_REGION}-docker.pkg.dev/retail-jkommerce-poc/${AR_REPO}/${PREFERENCES_IMAGE_NAME}:${TAG} \
+            .
           
           gcloud auth configure-docker ${AR_REGION}-docker.pkg.dev --quiet
           docker push ${AR_REGION}-docker.pkg.dev/retail-jkommerce-poc/${AR_REPO}/${IMAGE_NAME}:${TAG}
-          # docker push ${AR_REGION}-docker.pkg.dev/retail-jkommerce-poc/${AR_REPO}/${IMPRESSIONS_IMAGE_NAME}:${TAG}
-          # docker push ${AR_REGION}-docker.pkg.dev/retail-jkommerce-poc/${AR_REPO}/${PREFERENCES_IMAGE_NAME}:${TAG}
+          docker push ${AR_REGION}-docker.pkg.dev/retail-jkommerce-poc/${AR_REPO}/${IMPRESSIONS_IMAGE_NAME}:${TAG}
+          docker push ${AR_REGION}-docker.pkg.dev/retail-jkommerce-poc/${AR_REPO}/${PREFERENCES_IMAGE_NAME}:${TAG}
 
       - name: Deploy to Cloud Run
         if: steps.check.outputs.has_changes == 'true'
@@ -250,118 +250,129 @@ jobs:
             --set-env-vars="ORBIEE_GCP_PROJECT=retail-jkommerce-poc,ORBIEE_DEBUG=false,VERTEX_PROJECT=218142584790,RETAIL_PLACEMENT=projects/218142584790/locations/global/catalogs/default_catalog/servingConfigs/recommenedfy,RETAIL_BRANCH=projects/218142584790/locations/global/catalogs/default_catalog/branches/2,RETAIL_SEARCH_PLACEMENT=projects/218142584790/locations/global/catalogs/default_catalog/placements/default_search" \
             --quiet
 
-          # gcloud run deploy ${CLOUD_WORKER_SERVICE} \
-          #   --image=${AR_REGION}-docker.pkg.dev/retail-jkommerce-poc/${AR_REPO}/${IMAGE_NAME}:${TAG} \
-          #   --platform=managed \
-          #   --memory=2Gi \
-          #   --region=${REGION} \
-          #   --set-secrets=${SECRETS} \
-          #   --set-env-vars="ORBIEE_GCP_PROJECT=retail-jkommerce-poc,ORBIEE_DEBUG=false,VERTEX_PROJECT=218142584790,RETAIL_PLACEMENT=projects/218142584790/locations/global/catalogs/default_catalog/servingConfigs/recommenedfy,RETAIL_BRANCH=projects/218142584790/locations/global/catalogs/default_catalog/branches/2,RETAIL_SEARCH_PLACEMENT=projects/218142584790/locations/global/catalogs/default_catalog/placements/default_search" \
-          #   --command=python \
-          #   --args=-m,orbiee.workers.session_worker \
-          #   --min-instances=1 \
-          #   --max-instances=1 \
-          #   --quiet
+          gcloud run deploy ${CLOUD_WORKER_SERVICE} \
+            --image=${AR_REGION}-docker.pkg.dev/retail-jkommerce-poc/${AR_REPO}/${IMAGE_NAME}:${TAG} \
+            --platform=managed \
+            --memory=2Gi \
+            --region=${REGION} \
+            --set-secrets=${SECRETS} \
+            --set-env-vars="ORBIEE_GCP_PROJECT=retail-jkommerce-poc,ORBIEE_DEBUG=false,VERTEX_PROJECT=218142584790,RETAIL_PLACEMENT=projects/218142584790/locations/global/catalogs/default_catalog/servingConfigs/recommenedfy,RETAIL_BRANCH=projects/218142584790/locations/global/catalogs/default_catalog/branches/2,RETAIL_SEARCH_PLACEMENT=projects/218142584790/locations/global/catalogs/default_catalog/placements/default_search" \
+            --command=python \
+            --args=-m,orbiee.workers.session_worker \
+            --min-instances=1 \
+            --max-instances=1 \
+            --quiet
 
           gcloud run services add-iam-policy-binding ${CLOUD_RUN_SERVICE} \
             --region=${REGION} \
             --member="serviceAccount:218142584790-compute@developer.gserviceaccount.com" \
             --role="roles/run.invoker"
 
-          # gcloud run services add-iam-policy-binding ${CLOUD_WORKER_SERVICE} \
-          #   --region=${REGION} \
-          #   --member="serviceAccount:218142584790-compute@developer.gserviceaccount.com" \
-          #   --role="roles/run.invoker"
+          gcloud run services add-iam-policy-binding ${CLOUD_WORKER_SERVICE} \
+            --region=${REGION} \
+            --member="serviceAccount:218142584790-compute@developer.gserviceaccount.com" \
+            --role="roles/run.invoker"
 
-          # if gcloud run jobs describe ${IMPRESSIONS_IMAGE_NAME} --region=${REGION} >/dev/null 2>&1; then
-          #   echo "Updating existing job..."
-          #   gcloud run jobs update ${IMPRESSIONS_IMAGE_NAME} \
-          #     --image=${AR_REGION}-docker.pkg.dev/retail-jkommerce-poc/${AR_REPO}/${IMPRESSIONS_IMAGE_NAME}:${TAG} \
-          #     --region=${REGION} \
-          #     --set-secrets=${SECRETS} \
-          #     --max-retries=1 \
-          #     --service-account="218142584790-compute@developer.gserviceaccount.com" \
-          #     --task-timeout=15m
-          # else
-          #   echo "Creating new job..."
-          #   gcloud run jobs create ${IMPRESSIONS_IMAGE_NAME} \
-          #     --image=${AR_REGION}-docker.pkg.dev/retail-jkommerce-poc/${AR_REPO}/${IMPRESSIONS_IMAGE_NAME}:${TAG} \
-          #     --region=${REGION} \
-          #     --set-secrets=${SECRETS} \
-          #     --max-retries=1 \
-          #     --service-account="218142584790-compute@developer.gserviceaccount.com" \
-          #     --task-timeout=15m
-          # fi
+          gcloud functions deploy emotion-detection \
+            --gen2 \
+            --runtime=python311 \
+            --region=us-central1 \
+            --source=apps/emotion_detection_service \
+            --entry-point=emotion_Detection \
+            --trigger-http \
+            --memory=4Gi \
+            --timeout=300s \
+            --set-env-vars="EMOTION_MODEL_HUB=hf"
 
-          # gcloud run jobs add-iam-policy-binding ${IMPRESSIONS_IMAGE_NAME} \
-          #     --region=${REGION} \
-          #     --member="serviceAccount:218142584790-compute@developer.gserviceaccount.com" \
-          #     --role="roles/run.invoker"
+          if gcloud run jobs describe ${IMPRESSIONS_IMAGE_NAME} --region=${REGION} >/dev/null 2>&1; then
+            echo "Updating existing job..."
+            gcloud run jobs update ${IMPRESSIONS_IMAGE_NAME} \
+              --image=${AR_REGION}-docker.pkg.dev/retail-jkommerce-poc/${AR_REPO}/${IMPRESSIONS_IMAGE_NAME}:${TAG} \
+              --region=${REGION} \
+              --set-secrets=${SECRETS} \
+              --max-retries=1 \
+              --service-account="218142584790-compute@developer.gserviceaccount.com" \
+              --task-timeout=15m
+          else
+            echo "Creating new job..."
+            gcloud run jobs create ${IMPRESSIONS_IMAGE_NAME} \
+              --image=${AR_REGION}-docker.pkg.dev/retail-jkommerce-poc/${AR_REPO}/${IMPRESSIONS_IMAGE_NAME}:${TAG} \
+              --region=${REGION} \
+              --set-secrets=${SECRETS} \
+              --max-retries=1 \
+              --service-account="218142584790-compute@developer.gserviceaccount.com" \
+              --task-timeout=15m
+          fi
 
-          # if gcloud scheduler jobs describe ${IMPRESSIONS_IMAGE_NAME}-weekly --location=${REGION} >/dev/null 2>&1; then
-          #   echo "Updating existing job scheduler..."
-          #   gcloud scheduler jobs update http ${IMPRESSIONS_IMAGE_NAME}-weekly \
-          #     --location=${REGION} \
-          #     --schedule="0 6 * * 1" \
-          #     --uri="https://run.googleapis.com/v2/projects/retail-jkommerce-poc/locations/${REGION}/jobs/${IMPRESSIONS_IMAGE_NAME}:run" \
-          #     --http-method=POST \
-          #     --oauth-service-account-email="218142584790-compute@developer.gserviceaccount.com" \
-          #     --oauth-token-scope="https://www.googleapis.com/auth/cloud-platform"
-          # else
-          #   echo "Creating new job scheduler..."
-          #   gcloud scheduler jobs create http ${IMPRESSIONS_IMAGE_NAME}-weekly \
-          #     --location=${REGION} \
-          #     --schedule="0 6 * * 1" \
-          #     --uri="https://run.googleapis.com/v2/projects/retail-jkommerce-poc/locations/${REGION}/jobs/${IMPRESSIONS_IMAGE_NAME}:run" \
-          #     --http-method=POST \
-          #     --oauth-service-account-email="218142584790-compute@developer.gserviceaccount.com" \
-          #     --oauth-token-scope="https://www.googleapis.com/auth/cloud-platform"
-          # fi
+          gcloud run jobs add-iam-policy-binding ${IMPRESSIONS_IMAGE_NAME} \
+              --region=${REGION} \
+              --member="serviceAccount:218142584790-compute@developer.gserviceaccount.com" \
+              --role="roles/run.invoker"
 
-          # if gcloud run jobs describe ${PREFERENCES_IMAGE_NAME} --region=${REGION} >/dev/null 2>&1; then
-          #   echo "Updating existing preferences job..."
-          #   gcloud run jobs update ${PREFERENCES_IMAGE_NAME} \
-          #     --image=${AR_REGION}-docker.pkg.dev/retail-jkommerce-poc/${AR_REPO}/${PREFERENCES_IMAGE_NAME}:${TAG} \
-          #     --region=${REGION} \
-          #     --set-secrets=${SECRETS} \
-          #     --max-retries=1 \
-          #     --service-account="218142584790-compute@developer.gserviceaccount.com" \
-          #     --task-timeout=15m
-          # else
-          #   echo "Creating new preferences job..."
-          #   gcloud run jobs create ${PREFERENCES_IMAGE_NAME} \
-          #     --image=${AR_REGION}-docker.pkg.dev/retail-jkommerce-poc/${AR_REPO}/${PREFERENCES_IMAGE_NAME}:${TAG} \
-          #     --region=${REGION} \
-          #     --set-secrets=${SECRETS} \
-          #     --max-retries=1 \
-          #     --service-account="218142584790-compute@developer.gserviceaccount.com" \
-          #     --task-timeout=15m
-          # fi
+          if gcloud scheduler jobs describe ${IMPRESSIONS_IMAGE_NAME}-weekly --location=${REGION} >/dev/null 2>&1; then
+            echo "Updating existing job scheduler..."
+            gcloud scheduler jobs update http ${IMPRESSIONS_IMAGE_NAME}-weekly \
+              --location=${REGION} \
+              --schedule="0 6 * * 1" \
+              --uri="https://run.googleapis.com/v2/projects/retail-jkommerce-poc/locations/${REGION}/jobs/${IMPRESSIONS_IMAGE_NAME}:run" \
+              --http-method=POST \
+              --oauth-service-account-email="218142584790-compute@developer.gserviceaccount.com" \
+              --oauth-token-scope="https://www.googleapis.com/auth/cloud-platform"
+          else
+            echo "Creating new job scheduler..."
+            gcloud scheduler jobs create http ${IMPRESSIONS_IMAGE_NAME}-weekly \
+              --location=${REGION} \
+              --schedule="0 6 * * 1" \
+              --uri="https://run.googleapis.com/v2/projects/retail-jkommerce-poc/locations/${REGION}/jobs/${IMPRESSIONS_IMAGE_NAME}:run" \
+              --http-method=POST \
+              --oauth-service-account-email="218142584790-compute@developer.gserviceaccount.com" \
+              --oauth-token-scope="https://www.googleapis.com/auth/cloud-platform"
+          fi
 
-          # gcloud run jobs add-iam-policy-binding ${PREFERENCES_IMAGE_NAME} \
-          #     --region=${REGION} \
-          #     --member="serviceAccount:218142584790-compute@developer.gserviceaccount.com" \
-          #     --role="roles/run.invoker"
+          if gcloud run jobs describe ${PREFERENCES_IMAGE_NAME} --region=${REGION} >/dev/null 2>&1; then
+            echo "Updating existing preferences job..."
+            gcloud run jobs update ${PREFERENCES_IMAGE_NAME} \
+              --image=${AR_REGION}-docker.pkg.dev/retail-jkommerce-poc/${AR_REPO}/${PREFERENCES_IMAGE_NAME}:${TAG} \
+              --region=${REGION} \
+              --set-secrets=${SECRETS} \
+              --max-retries=1 \
+              --service-account="218142584790-compute@developer.gserviceaccount.com" \
+              --task-timeout=15m
+          else
+            echo "Creating new preferences job..."
+            gcloud run jobs create ${PREFERENCES_IMAGE_NAME} \
+              --image=${AR_REGION}-docker.pkg.dev/retail-jkommerce-poc/${AR_REPO}/${PREFERENCES_IMAGE_NAME}:${TAG} \
+              --region=${REGION} \
+              --set-secrets=${SECRETS} \
+              --max-retries=1 \
+              --service-account="218142584790-compute@developer.gserviceaccount.com" \
+              --task-timeout=15m
+          fi
 
-          # if gcloud scheduler jobs describe ${PREFERENCES_IMAGE_NAME}-weekly --location=${REGION} >/dev/null 2>&1; then
-          #   echo "Updating existing preferences job scheduler..."
-          #   gcloud scheduler jobs update http ${PREFERENCES_IMAGE_NAME}-weekly \
-          #     --location=${REGION} \
-          #     --schedule="0 8 * * 1" \
-          #     --uri="https://run.googleapis.com/v2/projects/retail-jkommerce-poc/locations/${REGION}/jobs/${IMPRESSIONS_IMAGE_NAME}:run" \
-          #     --http-method=POST \
-          #     --oauth-service-account-email="218142584790-compute@developer.gserviceaccount.com" \
-          #     --oauth-token-scope="https://www.googleapis.com/auth/cloud-platform"
-          # else
-          #   echo "Creating new preferences job scheduler..."
-          #   gcloud scheduler jobs create http ${PREFERENCES_IMAGE_NAME}-weekly \
-          #     --location=${REGION} \
-          #     --schedule="0 8 * * 1" \
-          #     --uri="https://run.googleapis.com/v2/projects/retail-jkommerce-poc/locations/${REGION}/jobs/${PREFERENCES_IMAGE_NAME}:run" \
-          #     --http-method=POST \
-          #     --oauth-service-account-email="218142584790-compute@developer.gserviceaccount.com" \
-          #     --oauth-token-scope="https://www.googleapis.com/auth/cloud-platform"
-          # fi
+          gcloud run jobs add-iam-policy-binding ${PREFERENCES_IMAGE_NAME} \
+              --region=${REGION} \
+              --member="serviceAccount:218142584790-compute@developer.gserviceaccount.com" \
+              --role="roles/run.invoker"
+
+          if gcloud scheduler jobs describe ${PREFERENCES_IMAGE_NAME}-weekly --location=${REGION} >/dev/null 2>&1; then
+            echo "Updating existing preferences job scheduler..."
+            gcloud scheduler jobs update http ${PREFERENCES_IMAGE_NAME}-weekly \
+              --location=${REGION} \
+              --schedule="0 8 * * 1" \
+              --uri="https://run.googleapis.com/v2/projects/retail-jkommerce-poc/locations/${REGION}/jobs/${IMPRESSIONS_IMAGE_NAME}:run" \
+              --http-method=POST \
+              --oauth-service-account-email="218142584790-compute@developer.gserviceaccount.com" \
+              --oauth-token-scope="https://www.googleapis.com/auth/cloud-platform"
+          else
+            echo "Creating new preferences job scheduler..."
+            gcloud scheduler jobs create http ${PREFERENCES_IMAGE_NAME}-weekly \
+              --location=${REGION} \
+              --schedule="0 8 * * 1" \
+              --uri="https://run.googleapis.com/v2/projects/retail-jkommerce-poc/locations/${REGION}/jobs/${PREFERENCES_IMAGE_NAME}:run" \
+              --http-method=POST \
+              --oauth-service-account-email="218142584790-compute@developer.gserviceaccount.com" \
+              --oauth-token-scope="https://www.googleapis.com/auth/cloud-platform"
+          fi
 
           echo ""
           echo "✅ Deployed: $CLOUD_RUN_SERVICE"
