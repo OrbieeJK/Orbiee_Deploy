@@ -283,7 +283,8 @@ jobs:
               --trigger-http \
               --memory=8Gi \
               --timeout=300s \
-              --set-env-vars="EMOTION_MODEL_HUB=hf"
+              --set-env-vars="EMOTION_MODEL_HUB=hf" \
+              --set-secrets="API_KEYS_JSON=orbiee-api-keys:latest"
           fi
 
           if gcloud run jobs describe ${IMPRESSIONS_IMAGE_NAME} --region=${REGION} >/dev/null 2>&1; then
