@@ -273,16 +273,18 @@ jobs:
             --member="serviceAccount:218142584790-compute@developer.gserviceaccount.com" \
             --role="roles/run.invoker"
 
-          gcloud functions deploy emotion-detection \
-            --gen2 \
-            --runtime=python311 \
-            --region=us-central1 \
-            --source=apps/emotion_detection_service \
-            --entry-point=emotion_Detection \
-            --trigger-http \
-            --memory=4Gi \
-            --timeout=300s \
-            --set-env-vars="EMOTION_MODEL_HUB=hf"
+          if [ "${{ github.event.client_payload.deploy_emotion_detection }}" = "yes" ]; then
+            gcloud functions deploy emotion-detection \
+              --gen2 \
+              --runtime=python311 \
+              --region=us-central1 \
+              --source=apps/emotion_detection_service \
+              --entry-point=emotion_Detection \
+              --trigger-http \
+              --memory=8Gi \
+              --timeout=300s \
+              --set-env-vars="EMOTION_MODEL_HUB=hf"
+          fi
 
           if gcloud run jobs describe ${IMPRESSIONS_IMAGE_NAME} --region=${REGION} >/dev/null 2>&1; then
             echo "Updating existing job..."
