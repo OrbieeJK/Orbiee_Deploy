@@ -219,7 +219,7 @@ jobs:
           docker build \
             -f apps/emotion_detection_service/Dockerfile \
             -t ${AR_REGION}-docker.pkg.dev/retail-jkommerce-poc/${AR_REPO}/${EMOTION_DETECTION_IMAGE_NAME}:${TAG} \
-            .
+            apps/emotion_detection_service
 
           docker build \
             -f apps/impressions_analytics_job/Dockerfile \
