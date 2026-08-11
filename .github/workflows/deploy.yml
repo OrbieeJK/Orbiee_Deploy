@@ -207,6 +207,7 @@ jobs:
           AR_REGION="${{ needs.setup.outputs.artifact_registry_region }}"
           AR_REPO="${{ needs.setup.outputs.artifact_registry_repo }}"
           IMAGE_NAME="${{ needs.setup.outputs.image_name }}"
+          EMOTION_DETECTION_IMAGE_NAME="${{ needs.setup.outputs.emotion_detection_image_name }}"
           IMPRESSIONS_IMAGE_NAME="${{ needs.setup.outputs.impressions_image_name }}"
           PREFERENCES_IMAGE_NAME="${{ needs.setup.outputs.preferences_image_name }}"
 
