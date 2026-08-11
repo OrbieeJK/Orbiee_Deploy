@@ -14,7 +14,9 @@ jobs:
       artifact_registry_repo: ${{ steps.env.outputs.artifact_registry_repo }}
       cloud_run_service: ${{ steps.env.outputs.cloud_run_service }}
       cloud_worker_service: ${{ steps.env.outputs.cloud_worker_service }}
+      emotion_detection_service: ${{ steps.env.outputs.emotion_detection_service }}
       image_name: ${{ steps.env.outputs.image_name }}
+      emotion_detection_image_name: ${{ steps.env.outputs.emotion_detection_image_name }}
       impressions_image_name: ${{ steps.env.outputs.impressions_image_name }}
       preferences_image_name: ${{ steps.env.outputs.preferences_image_name }}
       environment: ${{ steps.env.outputs.environment }}
@@ -39,36 +41,44 @@ jobs:
               rearchitecture|feature/emotion_detection)
                 CLOUD_RUN_SERVICE="orbiee-backend-dev"
                 IMAGE_NAME="orbiee-backend-dev"
+                EMOTION_DETECTION_IMAGE_NAME="orbiee-emotion-detection-dev"
                 IMPRESSIONS_IMAGE_NAME="orbiee-impressions-analytics-dev"
                 PREFERENCES_IMAGE_NAME="orbiee-preferences-dev"
                 CLOUD_WORKER_SERVICE="orbiee-worker-dev"
+                EMOTION_DETECTION_SERVICE="orbiee-emotion-detection-dev"
                 ENVIRONMENT="dev"
                 ;;
 
               feature/SearchRetrieval)
                 CLOUD_RUN_SERVICE="orbiee-backend-dev1"
                 IMAGE_NAME="orbiee-backend-dev1"
+                EMOTION_DETECTION_IMAGE_NAME="orbiee-emotion-detection-dev"
                 IMPRESSIONS_IMAGE_NAME="orbiee-impressions-analytics-dev1"
                 PREFERENCES_IMAGE_NAME="orbiee-preferences-dev1"
                 CLOUD_WORKER_SERVICE="orbiee-worker-dev1"
+                EMOTION_DETECTION_SERVICE="orbiee-emotion-detection-dev"
                 ENVIRONMENT="dev"
                 ;;
 
               feature/*)
                 CLOUD_RUN_SERVICE="orbiee-backend-dev"
                 IMAGE_NAME="orbiee-backend-dev"
+                EMOTION_DETECTION_IMAGE_NAME="orbiee-emotion-detection-dev"
                 IMPRESSIONS_IMAGE_NAME="orbiee-impressions-analytics-dev"
                 PREFERENCES_IMAGE_NAME="orbiee-preferences-dev"
                 CLOUD_WORKER_SERVICE="orbiee-worker-dev"
+                EMOTION_DETECTION_SERVICE="orbiee-emotion-detection-dev"
                 ENVIRONMENT="dev"
                 ;;
                 
               rearchitecture_demo)
                 CLOUD_RUN_SERVICE="orbiee-backend"
                 IMAGE_NAME="orbiee-backend"
+                EMOTION_DETECTION_IMAGE_NAME="orbiee-emotion-detection"
                 IMPRESSIONS_IMAGE_NAME="orbiee-impressions-analytics"
                 PREFERENCES_IMAGE_NAME="orbiee-preferences"
                 CLOUD_WORKER_SERVICE="orbiee-worker"
+                EMOTION_DETECTION_SERVICE="orbiee-emotion-detection"
                 ENVIRONMENT="demo"
                 ;;
                 
@@ -115,6 +125,8 @@ jobs:
           echo "cloud_run_service=$CLOUD_RUN_SERVICE"                   >> $GITHUB_OUTPUT
           echo "cloud_worker_service=$CLOUD_WORKER_SERVICE"             >> $GITHUB_OUTPUT
           echo "image_name=$IMAGE_NAME"                                 >> $GITHUB_OUTPUT
+          echo "emotion_detection_service=$EMOTION_DETECTION_SERVICE"   >> $GITHUB_OUTPUT
+          echo "emotion_detection_image_name=$EMOTION_DETECTION_IMAGE_NAME"  >> $GITHUB_OUTPUT
           echo "impressions_image_name=$IMPRESSIONS_IMAGE_NAME"         >> $GITHUB_OUTPUT
           echo "preferences_image_name=$PREFERENCES_IMAGE_NAME"         >> $GITHUB_OUTPUT
           echo "environment=$ENVIRONMENT"                               >> $GITHUB_OUTPUT
@@ -204,6 +216,11 @@ jobs:
             .
 
           docker build \
+            -f apps/emotion_detection_service/Dockerfile \
+            -t ${AR_REGION}-docker.pkg.dev/retail-jkommerce-poc/${AR_REPO}/${EMOTION_DETECTION_IMAGE_NAME}:${TAG} \
+            .
+
+          docker build \
             -f apps/impressions_analytics_job/Dockerfile \
             -t ${AR_REGION}-docker.pkg.dev/retail-jkommerce-poc/${AR_REPO}/${IMPRESSIONS_IMAGE_NAME}:${TAG} \
             .
@@ -215,6 +232,7 @@ jobs:
           
           gcloud auth configure-docker ${AR_REGION}-docker.pkg.dev --quiet
           docker push ${AR_REGION}-docker.pkg.dev/retail-jkommerce-poc/${AR_REPO}/${IMAGE_NAME}:${TAG}
+          docker push ${AR_REGION}-docker.pkg.dev/retail-jkommerce-poc/${AR_REPO}/${EMOTION_DETECTION_IMAGE_NAME}:${TAG}
           docker push ${AR_REGION}-docker.pkg.dev/retail-jkommerce-poc/${AR_REPO}/${IMPRESSIONS_IMAGE_NAME}:${TAG}
           docker push ${AR_REGION}-docker.pkg.dev/retail-jkommerce-poc/${AR_REPO}/${PREFERENCES_IMAGE_NAME}:${TAG}
 
@@ -223,10 +241,12 @@ jobs:
         run: |
           CLOUD_RUN_SERVICE="${{ needs.setup.outputs.cloud_run_service }}"
           CLOUD_WORKER_SERVICE="${{ needs.setup.outputs.cloud_worker_service }}"
+          EMOTION_DETECTION_SERVICE="${{ needs.setup.outputs.emotion_detection_service }}"
           REGION="${{ needs.setup.outputs.region }}"
           AR_REGION="${{ needs.setup.outputs.artifact_registry_region }}"
           AR_REPO="${{ needs.setup.outputs.artifact_registry_repo }}"
           IMAGE_NAME="${{ needs.setup.outputs.image_name }}"
+          EMOTION_DETECTION_IMAGE_NAME="${{ needs.setup.outputs.emotion_detection_image_name }}"
           IMPRESSIONS_IMAGE_NAME="${{ needs.setup.outputs.impressions_image_name }}"
           PREFERENCES_IMAGE_NAME="${{ needs.setup.outputs.preferences_image_name }}"
           ENVIRONMENT="${{ needs.setup.outputs.environment }}"
@@ -247,7 +267,7 @@ jobs:
             --memory=2Gi \
             --region=${REGION} \
             --set-secrets=${SECRETS} \
-            --set-env-vars="ORBIEE_GCP_PROJECT=retail-jkommerce-poc,ORBIEE_DEBUG=false,VERTEX_PROJECT=218142584790,RETAIL_PLACEMENT=projects/218142584790/locations/global/catalogs/default_catalog/servingConfigs/recommenedfy,RETAIL_BRANCH=projects/218142584790/locations/global/catalogs/default_catalog/branches/2,RETAIL_SEARCH_PLACEMENT=projects/218142584790/locations/global/catalogs/default_catalog/placements/default_search,ORBIEE_EMOTION_SERVICE_URL=https://us-central1-retail-jkommerce-poc.cloudfunctions.net/emotion-detection" \
+            --set-env-vars="ORBIEE_GCP_PROJECT=retail-jkommerce-poc,ORBIEE_DEBUG=false,VERTEX_PROJECT=218142584790,RETAIL_PLACEMENT=projects/218142584790/locations/global/catalogs/default_catalog/servingConfigs/recommenedfy,RETAIL_BRANCH=projects/218142584790/locations/global/catalogs/default_catalog/branches/2,RETAIL_SEARCH_PLACEMENT=projects/218142584790/locations/global/catalogs/default_catalog/placements/default_search,ORBIEE_EMOTION_SERVICE_URL=https://${EMOTION_DETECTION_SERVICE}-218142584790.us-central1.run.app" \
             --quiet
 
           gcloud run deploy ${CLOUD_WORKER_SERVICE} \
@@ -274,17 +294,21 @@ jobs:
             --role="roles/run.invoker"
 
           if [ "${{ github.event.client_payload.deploy_emotion_detection }}" = "yes" ]; then
-            gcloud functions deploy emotion-detection \
-              --gen2 \
-              --runtime=python311 \
-              --region=us-central1 \
-              --source=apps/emotion_detection_service \
-              --entry-point=emotion_Detection \
-              --trigger-http \
+            gcloud run deploy ${EMOTION_DETECTION_SERVICE} \
+              --image=${AR_REGION}-docker.pkg.dev/retail-jkommerce-poc/${AR_REPO}/${EMOTION_DETECTION_IMAGE_NAME}:${TAG} \
+              --platform=managed \
               --memory=8Gi \
-              --timeout=300s \
+              --region=${REGION} \
+              --set-secrets=${SECRETS} \
               --set-env-vars="EMOTION_MODEL_HUB=hf" \
-              --set-secrets="API_KEYS_JSON=orbiee-api-keys:latest"
+              --min-instances=1 \
+              --max-instances=1 \
+              --quiet
+
+            gcloud run services add-iam-policy-binding ${EMOTION_DETECTION_SERVICE} \
+              --region=${REGION} \
+              --member="serviceAccount:218142584790-compute@developer.gserviceaccount.com" \
+              --role="roles/run.invoker"
           fi
 
           if gcloud run jobs describe ${IMPRESSIONS_IMAGE_NAME} --region=${REGION} >/dev/null 2>&1; then
