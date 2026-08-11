@@ -217,11 +217,6 @@ jobs:
             .
 
           docker build \
-            -f apps/emotion_detection_service/Dockerfile \
-            -t ${AR_REGION}-docker.pkg.dev/retail-jkommerce-poc/${AR_REPO}/${EMOTION_DETECTION_IMAGE_NAME}:${TAG} \
-            apps/emotion_detection_service
-
-          docker build \
             -f apps/impressions_analytics_job/Dockerfile \
             -t ${AR_REGION}-docker.pkg.dev/retail-jkommerce-poc/${AR_REPO}/${IMPRESSIONS_IMAGE_NAME}:${TAG} \
             .
@@ -235,7 +230,15 @@ jobs:
           docker push ${AR_REGION}-docker.pkg.dev/retail-jkommerce-poc/${AR_REPO}/${IMAGE_NAME}:${TAG}
           docker push ${AR_REGION}-docker.pkg.dev/retail-jkommerce-poc/${AR_REPO}/${EMOTION_DETECTION_IMAGE_NAME}:${TAG}
           docker push ${AR_REGION}-docker.pkg.dev/retail-jkommerce-poc/${AR_REPO}/${IMPRESSIONS_IMAGE_NAME}:${TAG}
-          docker push ${AR_REGION}-docker.pkg.dev/retail-jkommerce-poc/${AR_REPO}/${PREFERENCES_IMAGE_NAME}:${TAG}
+          
+          if [ "${{ github.event.client_payload.deploy_emotion_detection }}" = "yes" ]; then
+            docker build \
+              -f apps/emotion_detection_service/Dockerfile \
+              -t ${AR_REGION}-docker.pkg.dev/retail-jkommerce-poc/${AR_REPO}/${EMOTION_DETECTION_IMAGE_NAME}:${TAG} \
+              apps/emotion_detection_service
+
+            docker push ${AR_REGION}-docker.pkg.dev/retail-jkommerce-poc/${AR_REPO}/${PREFERENCES_IMAGE_NAME}:${TAG}
+          fi
 
       - name: Deploy to Cloud Run
         if: steps.check.outputs.has_changes == 'true'
@@ -298,6 +301,7 @@ jobs:
             gcloud run deploy ${EMOTION_DETECTION_SERVICE} \
               --image=${AR_REGION}-docker.pkg.dev/retail-jkommerce-poc/${AR_REPO}/${EMOTION_DETECTION_IMAGE_NAME}:${TAG} \
               --platform=managed \
+              --cpu=4 \
               --memory=8Gi \
               --region=${REGION} \
               --set-secrets=${SECRETS} \
