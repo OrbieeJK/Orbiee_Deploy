@@ -391,7 +391,7 @@ jobs:
             gcloud scheduler jobs update http ${PREFERENCES_IMAGE_NAME}-weekly \
               --location=${REGION} \
               --schedule="0 8 * * 1" \
-              --uri="https://run.googleapis.com/v2/projects/retail-jkommerce-poc/locations/${REGION}/jobs/${IMPRESSIONS_IMAGE_NAME}:run" \
+              --uri="https://run.googleapis.com/v2/projects/retail-jkommerce-poc/locations/${REGION}/jobs/${PREFERENCES_IMAGE_NAME}:run" \
               --http-method=POST \
               --oauth-service-account-email="218142584790-compute@developer.gserviceaccount.com" \
               --oauth-token-scope="https://www.googleapis.com/auth/cloud-platform"
